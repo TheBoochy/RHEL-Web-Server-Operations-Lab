@@ -475,3 +475,115 @@ Screenshots:
 ![screenshot-05a-rhel-temporary-web-content.png](screenshots/screenshot-05a-rhel-temporary-web-content.png)
 
 ![screenshot-05b-rhel-python-http-server-test.png](screenshots/screenshot-05b-rhel-python-http-server-test.png)
+
+---
+
+## 2026-06-25 — Part 6: Web file permissions
+
+### Goal
+
+Review and configure basic permissions for the temporary web content used in the lab.
+
+Because Apache/httpd could not be installed, the lab used a temporary Python-based HTTP server. Even in this temporary setup, file permissions still matter because web content should be readable by the service process while write access remains limited to the owner.
+
+### Work completed
+
+* Reviewed permissions for the temporary web content folder.
+* Reviewed permissions for `index.html`.
+* Reviewed detailed metadata with `stat`.
+* Set the web content folder permission mode to `755`.
+* Set the `index.html` file permission mode to `644`.
+* Verified ownership and permissions after the change.
+* Verified SELinux context information shown by `stat`.
+* Started the temporary Python HTTP server again after the permission change.
+* Used `curl` to confirm that the web page still loaded successfully.
+* Verified that Python was listening on port `8080`.
+* Stopped the temporary Python server.
+* Verified that port `8080` was no longer listening after the server stopped.
+* Saved screenshot evidence of the permission review and service test.
+
+### Verification results
+
+| Item                          | Result                                 |
+| ----------------------------- | -------------------------------------- |
+| Web content folder            | `/home/vulkan/web-test`                |
+| Web page file                 | `/home/vulkan/web-test/index.html`     |
+| Folder owner/group            | `vulkan:vulkan`                        |
+| File owner/group              | `vulkan:vulkan`                        |
+| Folder permissions            | `0755 / drwxr-xr-x`                    |
+| File permissions              | `0644 / -rw-r--r--`                    |
+| Folder SELinux context        | `unconfined_u:object_r:user_home_t:s0` |
+| File SELinux context          | `unconfined_u:object_r:user_home_t:s0` |
+| Post-permission web test      | Successful                             |
+| Test URL                      | `http://127.0.0.1:8080`                |
+| Listening process during test | `python3`                              |
+| Listening port during test    | `0.0.0.0:8080`                         |
+| Port after stopping server    | No matching listener shown             |
+
+### Commands used
+
+```bash
+cd ~/web-test
+pwd
+
+ls -ld ~/web-test
+ls -l ~/web-test/index.html
+stat ~/web-test
+stat ~/web-test/index.html
+
+chmod 755 ~/web-test
+chmod 644 ~/web-test/index.html
+
+ls -ld ~/web-test
+ls -l ~/web-test/index.html
+stat ~/web-test
+stat ~/web-test/index.html
+
+python3 -m http.server 8080
+curl http://127.0.0.1:8080
+ss -tulpen | grep ':8080'
+ss -tulpen | grep ':8080' || true
+```
+
+### Command purpose
+
+| Command                                | Purpose                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `cd ~/web-test`                        | Moves into the temporary web content folder.                                                      |
+| `pwd`                                  | Prints the current directory path for verification.                                               |
+| `ls -ld ~/web-test`                    | Shows permissions, owner and group for the folder itself.                                         |
+| `ls -l ~/web-test/index.html`          | Shows permissions, owner and group for the web page file.                                         |
+| `stat ~/web-test`                      | Shows detailed metadata for the folder, including numeric permission mode and SELinux context.    |
+| `stat ~/web-test/index.html`           | Shows detailed metadata for the HTML file, including numeric permission mode and SELinux context. |
+| `chmod 755 ~/web-test`                 | Sets the folder so the owner can read/write/enter, while others can read and enter.               |
+| `chmod 644 ~/web-test/index.html`      | Sets the HTML file so the owner can read/write, while others can read only.                       |
+| `python3 -m http.server 8080`          | Starts Python’s temporary HTTP server on port `8080`.                                             |
+| `curl http://127.0.0.1:8080`           | Sends a local HTTP request to confirm the page still loads.                                       |
+| `ss -tulpen \| grep ':8080'`           | Confirms that Python is listening on port `8080`.                                                 |
+| `ss -tulpen \| grep ':8080' \|\| true` | Checks whether port `8080` is still listening after stopping the server.                          |
+
+### Notes
+
+The temporary web content folder was configured with permission mode `0755`. This allows the owner to manage the folder while allowing read and execute access for others.
+
+The `index.html` file was configured with permission mode `0644`. This allows the owner to edit the file while allowing others to read it.
+
+These permissions are appropriate for basic static web content in a lab environment because the page can be read, but the content is not world-writable.
+
+The `stat` output also showed the SELinux context `user_home_t` for both the folder and the HTML file. This will be useful in the next part when SELinux web context behavior is reviewed.
+
+After changing permissions, the Python HTTP server was started again on port `8080`. The `curl` test confirmed that the page still loaded successfully.
+
+The listening port check showed Python listening on `0.0.0.0:8080` during the test. After stopping the server, a final port check returned no matching listener.
+
+This part demonstrates basic web file permission review, permission hardening, service validation and post-change testing.
+
+### Evidence
+
+Screenshots:
+
+![screenshot-06a-rhel-web-file-permissions.png](screenshots/screenshot-06a-rhel-web-file-permissions.png)
+
+![screenshot-06b-rhel-web-file-permissions.png](screenshots/screenshot-06b-rhel-web-file-permissions.png)
+
+![screenshot-06c-rhel-web-permission-service-test.png](screenshots/screenshot-06c-rhel-web-permission-service-test.png)

@@ -18,7 +18,7 @@ The goal of this lab is to configure, verify and document a simple RHEL-based we
 
 During the lab, the Apache/httpd package was checked and confirmed to be unavailable on the current system because the RHEL server is not registered and has no enabled repositories. This limitation is documented as part of the troubleshooting process.
 
-Because Apache/httpd could not be installed, the lab continued with temporary Python-based web testing to validate basic static web content and local web access.
+Because Apache/httpd could not be installed, the lab continued with temporary Python-based web testing to validate basic static web content, file permissions and local web access.
 
 ---
 
@@ -35,6 +35,7 @@ The goals of this lab are to:
 * Verify whether Python 3 is available for temporary lab-based web testing.
 * Create temporary static web content.
 * Test local web serving with Python 3 on port 8080.
+* Review and configure basic web file permissions.
 * Review SELinux status and file contexts.
 * Review and test firewalld access where possible.
 * Test local and network readiness where possible.
@@ -52,7 +53,7 @@ The goals of this lab are to:
 | Part 3  | Web server package check                               | Complete |
 | Part 4  | Web service readiness and repository limitation review | Complete |
 | Part 5  | Temporary web content and Python HTTP server test      | Complete |
-| Part 6  | Web file permissions                                   | Planned  |
+| Part 6  | Web file permissions                                   | Complete |
 | Part 7  | SELinux web context review                             | Planned  |
 | Part 8  | Firewalld HTTP access                                  | Planned  |
 | Part 9  | Local and network testing                              | Planned  |
@@ -79,7 +80,10 @@ RHEL-Web-Server-Operations-Lab/
 │   ├── screenshot-04a-rhel-repository-readiness.png
 │   ├── screenshot-04b-rhel-web-service-readiness.png
 │   ├── screenshot-05a-rhel-temporary-web-content.png
-│   └── screenshot-05b-rhel-python-http-server-test.png
+│   ├── screenshot-05b-rhel-python-http-server-test.png
+│   ├── screenshot-06a-rhel-web-file-permissions.png
+│   ├── screenshot-06b-rhel-web-file-permissions.png
+│   └── screenshot-06c-rhel-web-permission-service-test.png
 ├── scripts/
 │   └── .gitkeep
 ├── logbook.md
@@ -90,7 +94,7 @@ RHEL-Web-Server-Operations-Lab/
 
 ## Current progress
 
-The project currently has the initial repository structure completed, the RHEL server baseline verified, the web server package check completed, the web service readiness limitation reviewed and a temporary Python-based web server test completed.
+The project currently has the initial repository structure completed, the RHEL server baseline verified, the web server package check completed, the web service readiness limitation reviewed, a temporary Python-based web server test completed and web file permissions reviewed.
 
 The baseline verification confirms the server identity, operating system, network configuration, disk usage, memory usage, SELinux mode and firewalld status before any web server package checks or configuration changes are made.
 
@@ -99,6 +103,8 @@ The web server package check confirmed that Apache/httpd is not installed. The `
 The repository readiness review confirmed that a `redhat.repo` file exists, but the system is not registered and DNF reports no usable repositories. The web service readiness check confirmed that Nginx and Lighttpd are not installed, while Python 3 is available. No services were listening on common web ports `80`, `443` or `8080`.
 
 Temporary web content was created in `/home/vulkan/web-test/index.html`. Python 3 was used to serve the content temporarily on port `8080`, and `curl` confirmed that the HTML page could be retrieved locally.
+
+The web content folder was configured with `0755` permissions, and `index.html` was configured with `0644` permissions. A follow-up Python HTTP server test confirmed that the page still worked after the permission change.
 
 ---
 
@@ -118,6 +124,7 @@ This project will demonstrate:
 * Local web testing with `curl`
 * Listening port verification with `ss`
 * Linux file ownership and permissions
+* Basic web file permission hardening
 * SELinux status and context review
 * Firewalld review and HTTP access control
 * Local and network service testing where possible
@@ -155,6 +162,9 @@ Current screenshot evidence:
 | `screenshot-04b-rhel-web-service-readiness.png`           | Alternative web service and port readiness review    |
 | `screenshot-05a-rhel-temporary-web-content.png`           | Temporary web content creation                       |
 | `screenshot-05b-rhel-python-http-server-test.png`         | Python HTTP server and local curl test               |
+| `screenshot-06a-rhel-web-file-permissions.png`            | Initial web file permission review                   |
+| `screenshot-06b-rhel-web-file-permissions.png`            | Final web file permission verification               |
+| `screenshot-06c-rhel-web-permission-service-test.png`     | Web service test after permission changes            |
 
 ---
 
@@ -169,3 +179,5 @@ The RHEL system is currently not registered with Red Hat subscription management
 This limitation will be documented throughout the lab instead of ignored. Future remediation would require registering the RHEL system or enabling a valid package repository before installing Apache/httpd.
 
 Python 3 is available on the system and was used for temporary local web testing in the lab. Python’s built-in HTTP server is not a production replacement for Apache/httpd.
+
+The temporary web content was stored under `/home/vulkan/web-test` and configured with basic readable permissions for lab testing.
