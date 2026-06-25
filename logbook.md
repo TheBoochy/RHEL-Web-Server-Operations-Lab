@@ -364,3 +364,114 @@ Screenshots:
 ![screenshot-04a-rhel-repository-readiness.png](screenshots/screenshot-04a-rhel-repository-readiness.png)
 
 ![screenshot-04b-rhel-web-service-readiness.png](screenshots/screenshot-04b-rhel-web-service-readiness.png)
+
+---
+
+## 2026-06-24 — Part 5: Temporary web content and Python HTTP server test
+
+### Goal
+
+Create temporary static web content and test local web serving with Python 3.
+
+Because Apache/httpd could not be installed due to repository and subscription limitations, this part uses Python’s built-in HTTP server as a temporary lab testing method.
+
+This is not a production web server replacement. It is used only to verify basic static web content and local HTTP access.
+
+### Work completed
+
+* Created a temporary web content folder under the `vulkan` user home directory.
+* Created an `index.html` file for the lab web page.
+* Verified that `index.html` exists.
+* Verified the contents of `index.html`.
+* Started Python’s built-in HTTP server on port `8080`.
+* Opened a second SSH terminal for testing.
+* Used `curl` to request the local web page from `127.0.0.1:8080`.
+* Confirmed that the HTML page was returned successfully.
+* Verified that Python was listening on port `8080`.
+* Stopped the temporary Python HTTP server.
+* Confirmed that the temporary server test was successful.
+* Saved screenshot evidence of the web content and Python HTTP server test.
+
+### Verification results
+
+| Item                       | Result                          |
+| -------------------------- | ------------------------------- |
+| Temporary web folder       | `/home/vulkan/web-test`         |
+| Web page file              | `index.html`                    |
+| Web content creation       | Successful                      |
+| Temporary server command   | `python3 -m http.server 8080`   |
+| Test URL                   | `http://127.0.0.1:8080`         |
+| Local curl test            | Successful                      |
+| Returned content           | HTML page displayed in terminal |
+| Listening port during test | `0.0.0.0:8080`                  |
+| Listening process          | `python3`                       |
+| Production web server used | No                              |
+| Temporary lab test used    | Yes                             |
+
+### Commands used
+
+```bash
+mkdir -p ~/web-test
+cd ~/web-test
+
+cat > index.html <<'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RHEL Web Server Operations Lab</title>
+</head>
+<body>
+    <h1>RHEL Web Server Operations Lab</h1>
+    <p>This page is being served temporarily with Python 3 for lab testing.</p>
+    <p>Apache/httpd could not be installed because the RHEL system is not registered and has no enabled repositories.</p>
+    <p>Documentation identity: Vulkan</p>
+</body>
+</html>
+EOF
+
+ls -l index.html
+cat index.html
+
+python3 -m http.server 8080
+curl http://127.0.0.1:8080
+ss -tulpen | grep ':8080'
+ss -tulpen | grep ':8080' || true
+```
+
+### Command purpose
+
+| Command                                | Purpose                                                                                  |
+| -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `mkdir -p ~/web-test`                  | Creates the temporary web content folder if it does not already exist.                   |
+| `cd ~/web-test`                        | Moves into the temporary web content folder.                                             |
+| `cat > index.html <<'EOF'`             | Creates the `index.html` file using heredoc input.                                       |
+| `ls -l index.html`                     | Confirms that the web page file exists and shows permissions, owner, size and timestamp. |
+| `cat index.html`                       | Displays the HTML file contents for verification.                                        |
+| `python3 -m http.server 8080`          | Starts Python’s temporary HTTP server on port `8080`.                                    |
+| `curl http://127.0.0.1:8080`           | Sends a local HTTP request to the temporary web server.                                  |
+| `ss -tulpen \| grep ':8080'`           | Confirms that a process is listening on port `8080`.                                     |
+| `ss -tulpen \| grep ':8080' \|\| true` | Checks whether port `8080` is still listening after the server is stopped.               |
+
+### Notes
+
+The `nano` text editor was not installed on the system, so the HTML file was created using a heredoc with `cat`.
+
+This was appropriate because package installation is currently blocked by the system’s missing repository and subscription configuration.
+
+The temporary Python HTTP server successfully served the static HTML page from `/home/vulkan/web-test`.
+
+The `curl` test confirmed that the page was reachable locally through `http://127.0.0.1:8080`.
+
+The `ss` check confirmed that Python was listening on `0.0.0.0:8080` during the test.
+
+Python’s built-in HTTP server was used only as a temporary lab testing tool. It is not suitable as a production replacement for Apache/httpd.
+
+This part demonstrates static content creation, temporary web service testing, local HTTP testing and listening port verification despite the Apache installation limitation.
+
+### Evidence
+
+Screenshots:
+
+![screenshot-05a-rhel-temporary-web-content.png](screenshots/screenshot-05a-rhel-temporary-web-content.png)
+
+![screenshot-05b-rhel-python-http-server-test.png](screenshots/screenshot-05b-rhel-python-http-server-test.png)
